@@ -12,8 +12,8 @@ import java.util.concurrent.Executors;
 public class MainActivity extends AppCompatActivity {
 
     private static final String TAG = "MainActivity";
-    private String SERVICE_STATE = "service";
-    private String DISCOVER_STATE = "discover";
+    private final String SERVICE_STATE = "service";
+    private final String DISCOVER_STATE = "discover";
     private Boolean serviceON = false;
     private Boolean discoverON = false;
     private TextView serviceTxt;
@@ -98,12 +98,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void sendMessageClick(View view){
-        Executors.newSingleThreadExecutor().execute(new Runnable() {
-            @Override
-            public void run() {
-                dnssdDiscover.sendMessage();
-            }
-        });
+        Executors.newSingleThreadExecutor().execute(() -> dnssdDiscover.sendMessage());
     }
 
     public void closeClick(View view){

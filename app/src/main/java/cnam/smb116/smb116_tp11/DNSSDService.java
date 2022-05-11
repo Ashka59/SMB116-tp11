@@ -16,19 +16,16 @@ import java.util.concurrent.Executors;
 public class DNSSDService {
 
     private final String TAG = "DNSSDService";
-    private final String SERVICE_NAME = "Deptinfo";
-    private final String SERVICE_TYPE = "_http._tcp.";
-    private Context context;
+    private final Context context;
     private ServerSocket serverSocket;
     private int localPort;
     private InetAddress host;
     private NsdManager nsdManager;
     private NsdManager.RegistrationListener registrationListener;
     private String serviceName;
-    private Thread serverThread;
     private Socket socket;
     private Boolean serverOn = true;
-    private MainActivity mainActivity;
+    private final MainActivity mainActivity;
 
     public DNSSDService(Context context, MainActivity mainActivity){
         this.context = context;
@@ -42,7 +39,7 @@ public class DNSSDService {
             getServerThread();
             initializeRegistrationListener();
             registerService(localPort);
-            serverThread = getServerThread();
+            Thread serverThread = getServerThread();
             serverThread.start();
 
         } catch (IOException e) {
@@ -74,7 +71,7 @@ public class DNSSDService {
 
             @Override
             public void onRegistrationFailed(NsdServiceInfo serviceInfo, int errorCode) {
-                showText("onRegistrationFailed: "+serviceName+" error code: "+String.valueOf(errorCode));
+                showText("onRegistrationFailed: "+serviceName+" error code: "+ errorCode);
             }
 
             @Override
@@ -84,7 +81,7 @@ public class DNSSDService {
 
             @Override
             public void onUnregistrationFailed(NsdServiceInfo serviceInfo, int errorCode) {
-                showText("onUnregistrationFailed: "+serviceName+" error code: "+String.valueOf(errorCode));
+                showText("onUnregistrationFailed: "+serviceName+" error code: "+ errorCode);
             }
         };
     }
@@ -92,7 +89,9 @@ public class DNSSDService {
 
     public void registerService(int port) {
         NsdServiceInfo serviceInfo = new NsdServiceInfo();
+        String SERVICE_NAME = "Deptinfo";
         serviceInfo.setServiceName(SERVICE_NAME);
+        String SERVICE_TYPE = "_http._tcp.";
         serviceInfo.setServiceType(SERVICE_TYPE);
         serviceInfo.setPort(port);
 
@@ -100,7 +99,7 @@ public class DNSSDService {
 
         nsdManager.registerService(
                 serviceInfo, NsdManager.PROTOCOL_DNS_SD, registrationListener);
-        showText("NSD Service started (port: "+String.valueOf(port)+")...");
+        showText("NSD Service started (port: "+ port +")...");
     }
 
     public Thread getServerThread(){
@@ -135,26 +134,18 @@ public class DNSSDService {
     }
 
     public void showText(String texte){
-        mainActivity.runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                mainActivity.callServiceUI(texte);
-            }
-        });
+        mainActivity.runOnUiThread(() -> mainActivity.callServiceUI(texte));
     }
 
     public void stopServer(){
-        Executors.newSingleThreadExecutor().execute(new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    Socket stopSocket = new Socket(host, localPort);
-                    OutputStream out = stopSocket.getOutputStream();
-                    out.write("close".getBytes());
-                    stopSocket.close();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
+        Executors.newSingleThreadExecutor().execute(() -> {
+            try {
+                Socket stopSocket = new Socket(host, localPort);
+                OutputStream out = stopSocket.getOutputStream();
+                out.write("close".getBytes());
+                stopSocket.close();
+            } catch (IOException e) {
+                e.printStackTrace();
             }
         });
     }

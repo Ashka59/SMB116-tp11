@@ -13,17 +13,16 @@ import java.net.Socket;
 public class DNSSDDiscover {
 
     private static final String TAG = "DNSSDDiscover";
-    private String SERVICE_NAME = "Deptinfo";
-    private String SERVICE_TYPE = "_http._tcp.";
-    private Context context;
-    private Socket clientSocket;
-    private String serviceNameDiscover = "test";
+    private final String SERVICE_NAME = "Deptinfo";
+    private final String SERVICE_TYPE = "_http._tcp.";
+    private final Context context;
+    private final String serviceNameDiscover = "test";
     private NsdManager nsdManager2;
     private NsdManager.DiscoveryListener discoveryListener;
     private NsdManager.ResolveListener resolveListener;
     private Integer port;
     private InetAddress host;
-    private MainActivity mainActivity;
+    private final MainActivity mainActivity;
 
     public DNSSDDiscover(Context context, MainActivity mainActivity){
         this.context = context;
@@ -121,12 +120,11 @@ public class DNSSDDiscover {
                     showText("Same IP.");
                     return;
                 }
-                NsdServiceInfo mService = serviceInfo;
-                port = mService.getPort();
-                host = mService.getHost();
+                port = serviceInfo.getPort();
+                host = serviceInfo.getHost();
 
                 Log.i(TAG, "it works");
-                showText("onServiceResolved: "+mService.getServiceName()+" (port: "+port+", address: "+host+")");
+                showText("onServiceResolved: "+ serviceInfo.getServiceName()+" (port: "+port+", address: "+host+")");
             }
         };
     }
@@ -140,17 +138,12 @@ public class DNSSDDiscover {
     }
 
     public void showText(String texte){
-        mainActivity.runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                mainActivity.callDiscoverUI(texte);
-            }
-        });
+        mainActivity.runOnUiThread(() -> mainActivity.callDiscoverUI(texte));
     }
 
     public void buildSocketMessage(){
         try {
-            clientSocket = new Socket(host, port);
+            Socket clientSocket = new Socket(host, port);
             OutputStream out = clientSocket.getOutputStream();
             out.write("Bonjour".getBytes());
             clientSocket.close();
